@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '../models/flight.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: const Center(child: Text('User profile will be here')),
+    return const Center(
+      child: Text(
+        'Profile Screen',
+        style: TextStyle(fontSize: 24),
+      ),
     );
   }
 }

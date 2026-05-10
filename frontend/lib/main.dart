@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/home_screen.dart';
 
 void main() {
-  runApp(const DomesticFlightApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class DomesticFlightApp extends StatelessWidget {
-  const DomesticFlightApp({Key? key}) : super(key: key);
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

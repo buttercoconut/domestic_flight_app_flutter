@@ -1,94 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/airport_provider.dart';
+import '../providers/flight_provider.dart';
 import '../widgets/airport_search_field.dart';
-import '../services/api_service.dart';
-import '../models/flight.dart';
 import '../widgets/flight_card.dart';
 
-class SearchScreen extends StatefulWidget {
-  const SearchScreen({Key? key}) : super(key: key);
+class SearchScreen extends ConsumerWidget {
+  const SearchScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final airports = ref.watch(airportListProvider);
+    final flights = ref.watch(flightListProvider);
 
-class _SearchScreenState extends State<SearchScreen> {
-  final ApiService _apiService = ApiService();
-  final TextEditingController _departureController = TextEditingController();
-  final TextEditingController _arrivalController = TextEditingController();
-  DateTime? _selectedDate;
-  List<Flight> _results = [];
-  bool _loading = false;
-
-  Future<void> _search() async {
-    if (_departureController.text.isEmpty || _arrivalController.text.isEmpty || _selectedDate == null) return;
-    setState(() => _loading = true);
-    final flights = await _apiService.searchFlights(
-      departure: _departureController.text,
-      arrival: _arrivalController.text,
-      date: _selectedDate!,
-    );
-    setState(() {
-      _results = flights;
-      _loading = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Search Flights')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            AirportSearchField(
-              controller: _departureController,
-              hint: 'Departure Airport',
-            ),
-            const SizedBox(height: 8),
-            AirportSearchField(
-              controller: _arrivalController,
-              hint: 'Arrival Airport',
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(_selectedDate == null
-                      ? 'Select Date'
-                      : '${_selectedDate!.toLocal()}'.split(' ')[0]),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.calendar_today),
-                  onPressed: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (date != null) {
-                      setState(() => _selectedDate = date);
-                    }
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _search, child: const Text('Search')),
-            const SizedBox(height: 16),
-            _loading
-                ? const Center(child: CircularProgressIndicator())
-                : Expanded(
-                    child: ListView.builder(
-                      itemCount: _results.length,
-                      itemBuilder: (context, index) {
-                        return FlightCard(flight: _results[index]);
-                      },
-                    ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Search Flights',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          AirportSearchField(
+            airports: airports,
+            onSearch: (from, to, date) {
+              ref
+                  .read(flightListProvider.notifier)
+                  .searchFlights(from, to, date);
+            },
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: flights.isEmpty
+                ? const Center(child: Text('No flights found'))
+                : ListView.builder(
+                    itemCount: flights.length,
+                    itemBuilder: (context, index) {
+                      return FlightCard(flight: flights[index]);
+                    },
                   ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

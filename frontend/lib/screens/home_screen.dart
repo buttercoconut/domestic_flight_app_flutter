@@ -1,51 +1,56 @@
 import 'package:flutter/material.dart';
-import '../widgets/flight_card.dart';
-import '../services/api_service.dart';
-import '../models/flight.dart';
+import 'search_screen.dart';
+import 'reservation_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ApiService _apiService = ApiService();
-  List<Flight> _flights = [];
-  bool _loading = false;
+  int _selectedIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _searchFlights();
-  }
+  static const List<Widget> _pages = <Widget>[ 
+    SearchScreen(),
+    ReservationScreen(),
+    ProfileScreen(),
+  ];
 
-  Future<void> _searchFlights() async {
-    setState(() => _loading = true);
-    final flights = await _apiService.searchFlights(
-      departure: 'ICN',
-      arrival: 'KTX',
-      date: DateTime.now(),
-    );
+  void _onItemTapped(int index) {
     setState(() {
-      _flights = flights;
-      _loading = false;
+      _selectedIndex = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Domestic Flights')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _flights.length,
-              itemBuilder: (context, index) {
-                return FlightCard(flight: _flights[index]);
-              },
-            ),
+      appBar: AppBar(
+        title: const Text('Domestic Flight App'),
+      ),
+      body: _pages.elementAt(_selectedIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[ 
+          BottomNavigationBarItem(
+            icon: Icon(Icons.flight_takeoff),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: 'Reservations',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        onTap: _onItemTapped,
+      ),
     );
   }
 }
