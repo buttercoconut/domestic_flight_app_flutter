@@ -1,16 +1,11 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from ..models.flight import Flight
-from ..schemas.flight import FlightCreate, FlightOut
+"""Flight service logic."""
 
-async def create_flight(db: AsyncSession, flight_in: FlightCreate) -> FlightOut:
-    flight = Flight(**flight_in.dict())
-    db.add(flight)
-    await db.commit()
-    await db.refresh(flight)
-    return FlightOut.from_orm(flight)
+from sqlalchemy.orm import Session
+from .. import models
 
-async def list_flights(db: AsyncSession) -> list[FlightOut]:
-    result = await db.execute(select(Flight))
-    flights = result.scalars().all()
-    return [FlightOut.from_orm(f) for f in flights]
+async def search_flights(db: Session, origin: str, destination: str, date: str):
+    return db.query(models.Flight).filter(
+        models.Flight.departure_airport == origin,
+        models.Flight.arrival_airport == destination,
+        models.Flight.departure_time.like(f"{date}%")
+    ).all()

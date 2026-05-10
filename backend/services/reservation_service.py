@@ -1,16 +1,15 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from ..models.reservation import Reservation
-from ..schemas.reservation import ReservationCreate, ReservationOut
+"""Reservation service logic."""
 
-async def create_reservation(db: AsyncSession, res_in: ReservationCreate) -> ReservationOut:
-    reservation = Reservation(**res_in.dict())
-    db.add(reservation)
-    await db.commit()
-    await db.refresh(reservation)
-    return ReservationOut.from_orm(reservation)
+from sqlalchemy.orm import Session
+from .. import models
+from ..schemas import ReservationCreate
 
-async def list_reservations(db: AsyncSession) -> list[ReservationOut]:
-    result = await db.execute(select(Reservation))
-    reservations = result.scalars().all()
-    return [ReservationOut.from_orm(r) for r in reservations]
+async def create_reservation(db: Session, reservation_in: ReservationCreate):
+    db_reservation = models.Reservation(**reservation_in.dict())
+    db.add(db_reservation)
+    db.commit()
+    db.refresh(db_reservation)
+    return db_reservation
+
+async def get_reservation(db: Session, reservation_id: int):
+    return db.query(models.Reservation).filter(models.Reservation.id == reservation_id).first()

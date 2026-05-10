@@ -1,31 +1,16 @@
-"""FastAPI application entry point.
-
-This file creates the FastAPI instance, includes the router modules and
-provides a simple health‑check endpoint.
-"""
+"""FastAPI application entry point."""
 
 from fastapi import FastAPI
-
-from . import database
-from .routes import reservation
+from .routes import user, flight, reservation
 
 app = FastAPI(title="Domestic Flight Reservation API")
 
-# Initialise database tables on startup.
-@app.on_event("startup")
-def on_startup() -> None:
-    database.init_db()
-
-# Include routers.
+# Include routers
+app.include_router(user.router, prefix="/users", tags=["users"])
+app.include_router(flight.router, prefix="/flights", tags=["flights"])
 app.include_router(reservation.router, prefix="/reservations", tags=["reservations"])
 
-# Simple health‑check.
-@app.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok"}
-
-# If run directly, use uvicorn.
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("domestic_flight_app_flutter.backend.main:app", host="0.0.0.0", port=8000, reload=True)
+# Root endpoint
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to Domestic Flight Reservation API"}

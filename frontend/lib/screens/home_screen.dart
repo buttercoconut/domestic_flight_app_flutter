@@ -1,107 +1,51 @@
 import 'package:flutter/material.dart';
-import '../widgets/airport_search_field.dart';
 import '../widgets/flight_card.dart';
 import '../services/api_service.dart';
-import 'reservation_screen.dart';
-import 'profile_screen.dart';
+import '../models/flight.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _fromController = TextEditingController();
-  final TextEditingController _toController = TextEditingController();
+  final ApiService _apiService = ApiService();
   List<Flight> _flights = [];
-  bool _isLoading = false;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFlights();
+  }
 
   Future<void> _searchFlights() async {
-    setState(() => _isLoading = true);
-    final flights = await ApiService.instance.searchFlights(
-      from: _fromController.text,
-      to: _toController.text,
+    setState(() => _loading = true);
+    final flights = await _apiService.searchFlights(
+      departure: 'ICN',
+      arrival: 'KTX',
+      date: DateTime.now(),
     );
     setState(() {
       _flights = flights;
-      _isLoading = false;
+      _loading = false;
     });
-  }
-
-  int _selectedIndex = 0;
-  static const List<Widget> _pages = [
-    HomeScreen(),
-    ReservationScreen(),
-    ProfileScreen(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Domestic Flights'),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const AirportSearchField(),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _searchFlights,
-              icon: const Icon(Icons.search),
-              label: const Text('Search Flights'),
+      appBar: AppBar(title: const Text('Domestic Flights')),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: _flights.length,
+              itemBuilder: (context, index) {
+                return FlightCard(flight: _flights[index]);
+              },
             ),
-            const SizedBox(height: 16),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : Expanded(
-                    child: ListView.builder(
-                      itemCount: _flights.length,
-                      itemBuilder: (context, index) {
-                        final flight = _flights[index];
-                        return FlightCard(
-                          flight: flight,
-                          onBook: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ReservationScreen(
-                                flight: flight,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.flight),
-            label: 'Flights',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.book),
-            label: 'Reservations',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
     );
   }
 }

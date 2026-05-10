@@ -1,13 +1,10 @@
-"""Configuration settings for the backend.
+"""Configuration settings for the application."""
 
-Uses Pydantic's BaseSettings to load environment variables.
-"""
-
-from pydantic import BaseSettings, PostgresDsn
+from pydantic import BaseSettings, Field
 
 class Settings(BaseSettings):
-    DATABASE_URL: PostgresDsn
-    SECRET_KEY: str
+    DATABASE_URL: str = Field(..., env="DATABASE_URL")
+    SECRET_KEY: str = Field(..., env="SECRET_KEY")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 

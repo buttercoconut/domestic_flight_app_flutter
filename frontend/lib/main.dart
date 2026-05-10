@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/search_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const DomesticFlightApp());
@@ -12,8 +12,10 @@ class DomesticFlightApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Domestic Flight App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const SearchScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const HomeScreen(),
     );
   }
 }
