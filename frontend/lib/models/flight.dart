@@ -1,28 +1,24 @@
 class Flight {
-  final String flightNumber;
   final String airline;
-  final String origin;
-  final String destination;
+  final String flightNumber;
   final String departureTime;
   final String arrivalTime;
+  final String duration;
 
-  Flight({
-    required this.flightNumber,
-    required this.airline,
-    required this.origin,
-    required this.destination,
-    required this.departureTime,
-    required this.arrivalTime,
-  });
+  Flight(
+      {required this.airline,
+      required this.flightNumber,
+      required this.departureTime,
+      required this.arrivalTime,
+      required this.duration});
 
   factory Flight.fromJson(Map<String, dynamic> json) {
     return Flight(
-      flightNumber: json['flightNumber'] as String,
       airline: json['airline'] as String,
-      origin: json['origin'] as String,
-      destination: json['destination'] as String,
+      flightNumber: json['flightNumber'] as String,
       departureTime: json['departureTime'] as String,
       arrivalTime: json['arrivalTime'] as String,
+      duration: json['duration'] as String,
     );
   }
 }

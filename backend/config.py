@@ -1,11 +1,18 @@
-from pydantic import BaseSettings
+"""Configuration settings for the backend.
+
+Uses Pydantic's BaseSettings to load environment variables.
+"""
+
+from pydantic import BaseSettings, PostgresDsn
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Domestic Flight App"
-    VERSION: str = "0.1.0"
-    DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/domestic_flight"
-    SECRET_KEY: str = "supersecretkey"
+    DATABASE_URL: PostgresDsn
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
 
 settings = Settings()

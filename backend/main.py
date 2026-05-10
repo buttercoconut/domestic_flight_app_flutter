@@ -1,22 +1,31 @@
+"""FastAPI application entry point.
+
+This file creates the FastAPI instance, includes the router modules and
+provides a simple health‑check endpoint.
+"""
+
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from .config import settings
-from .routes import user, flight, reservation
 
-app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
+from . import database
+from .routes import reservation
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="Domestic Flight Reservation API")
 
-app.include_router(user.router, prefix="/api/v1/users", tags=["users"])
-app.include_router(flight.router, prefix="/api/v1/flights", tags=["flights"])
-app.include_router(reservation.router, prefix="/api/v1/reservations", tags=["reservations"])
+# Initialise database tables on startup.
+@app.on_event("startup")
+def on_startup() -> None:
+    database.init_db()
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to Domestic Flight App API"}
+# Include routers.
+app.include_router(reservation.router, prefix="/reservations", tags=["reservations"])
+
+# Simple health‑check.
+@app.get("/health")
+async def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+# If run directly, use uvicorn.
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("domestic_flight_app_flutter.backend.main:app", host="0.0.0.0", port=8000, reload=True)

@@ -1,72 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:domestic_flight_app_flutter/models/flight.dart';
-import 'package:domestic_flight_app_flutter/providers/flight_provider.dart';
-import 'package:domestic_flight_app_flutter/widgets/flight_card.dart';
+import 'package:provider/provider.dart';
+import '../services/api_service.dart';
+import '../widgets/flight_card.dart';
 
-class SearchScreen extends ConsumerStatefulWidget {
-  const SearchScreen({super.key});
+class SearchScreen extends StatefulWidget {
+  const SearchScreen({Key? key}) : super(key: key);
 
   @override
-  _SearchScreenState createState() => _SearchScreenState();
+  State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends ConsumerState<SearchScreen> {
-  final _originController = TextEditingController();
-  final _destinationController = TextEditingController();
+class _SearchScreenState extends State<SearchScreen> {
+  final _departureController = TextEditingController();
+  final _arrivalController = TextEditingController();
   final _dateController = TextEditingController();
+  List<dynamic> _flights = [];
+  bool _loading = false;
 
-  @override
-  void dispose() {
-    _originController.dispose();
-    _destinationController.dispose();
-    _dateController.dispose();
-    super.dispose();
-  }
-
-  void _search() {
-    final origin = _originController.text.trim();
-    final destination = _destinationController.text.trim();
-    final date = _dateController.text.trim();
-    if (origin.isEmpty || destination.isEmpty || date.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
-      );
-      return;
-    }
-    ref.read(flightListProvider.notifier).searchFlights(
-      origin: origin,
-      destination: destination,
-      date: date,
+  Future<void> _search() async {
+    setState(() => _loading = true);
+    final flights = await ApiService.instance.searchFlights(
+      departure: _departureController.text,
+      arrival: _arrivalController.text,
+      date: _dateController.text,
     );
-    Navigator.pop(context);
+    setState(() {
+      _flights = flights;
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Flights')),
+      appBar: AppBar(title: const Text('항공편 검색')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
-              controller: _originController,
-              decoration: const InputDecoration(labelText: 'Origin'),
+              controller: _departureController,
+              decoration: const InputDecoration(labelText: '출발지'),
             ),
             TextField(
-              controller: _destinationController,
-              decoration: const InputDecoration(labelText: 'Destination'),
+              controller: _arrivalController,
+              decoration: const InputDecoration(labelText: '도착지'),
             ),
             TextField(
               controller: _dateController,
-              decoration: const InputDecoration(labelText: 'Date (YYYY-MM-DD)'),
+              decoration: const InputDecoration(labelText: '날짜'),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _search,
-              child: const Text('Search'),
-            ),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _search, child: const Text('검색')),
+            const SizedBox(height: 16),
+            _loading
+                ? const CircularProgressIndicator()
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: _flights.length,
+                      itemBuilder: (context, index) {
+                        return FlightCard(flight: _flights[index]);
+                      },
+                    ),
+                  ),
           ],
         ),
       ),
