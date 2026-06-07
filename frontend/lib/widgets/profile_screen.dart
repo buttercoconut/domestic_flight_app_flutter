@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../widgets/profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -8,7 +7,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: const Center(child: Text('Profile Screen')),
+      body: const Center(child: Text('User profile details go here')),
     );
   }
 }

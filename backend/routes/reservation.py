@@ -1,16 +1,21 @@
-"""Reservation routes."""
-
+# routes/reservation.py
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from .. import services
-from ..dependencies import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..models.reservation import Reservation, ReservationRead, ReservationCreate
+from ..services.reservation_service import create_reservation, get_reservations_by_user
 
 router = APIRouter()
 
-@router.post("/")
-async def create_reservation(reservation: services.ReservationCreate, db: Session = Depends(get_db)):
-    return await services.reservation_service.create_reservation(db, reservation)
+@router.post("/", response_model=ReservationRead)
+async def book_reservation(res_in: ReservationCreate, db: AsyncSession = Depends(get_db)):
+    reservation = await create_reservation(db, res_in)
+    return ReservationRead.from_orm(reservation)
 
-@router.get("/{reservation_id}")
-async def get_reservation(reservation_id: int, db: Session = Depends(get_db)):
-    return await services.reservation_service.get_reservation(db, reservation_id)
+@router.get("/user/{user_id}", response_model=list[ReservationRead])
+async def list_user_reservations(user_id: int, db: AsyncSession = Depends(get_db)):
+    reservations = await get_reservations_by_user(db, user_id)
+    return [ReservationRead.from_orm(r) for r in reservations]
+
+async def get_db():
+    pass

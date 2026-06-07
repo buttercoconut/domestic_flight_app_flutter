@@ -1,8 +1,8 @@
-"""User domain model."""
+# models/user.py
+from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy.orm import declarative_base
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.orm import relationship
-from . import Base
+Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"
@@ -10,9 +10,21 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    full_name = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, server_default="now()")
-    updated_at = Column(DateTime, server_default="now()", onupdate="now()")
+    is_superuser = Column(Boolean, default=False)
 
-    reservations = relationship("Reservation", back_populates="user")
+# Pydantic schemas
+from pydantic import BaseModel, EmailStr
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: EmailStr
+    is_active: bool
+    is_superuser: bool
+
+    class Config:
+        orm_mode = True

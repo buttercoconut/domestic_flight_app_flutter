@@ -1,15 +1,22 @@
-"""Reservation service logic."""
+# services/reservation_service.py
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from ..models.reservation import Reservation, ReservationCreate
+from datetime import datetime
 
-from sqlalchemy.orm import Session
-from .. import models
-from ..schemas import ReservationCreate
+async def create_reservation(db: AsyncSession, res_in: ReservationCreate):
+    reservation = Reservation(
+        user_id=res_in.user_id,
+        flight_id=res_in.flight_id,
+        seat_number=res_in.seat_number,
+        status="booked",
+        created_at=datetime.utcnow(),
+    )
+    db.add(reservation)
+    await db.commit()
+    await db.refresh(reservation)
+    return reservation
 
-async def create_reservation(db: Session, reservation_in: ReservationCreate):
-    db_reservation = models.Reservation(**reservation_in.dict())
-    db.add(db_reservation)
-    db.commit()
-    db.refresh(db_reservation)
-    return db_reservation
-
-async def get_reservation(db: Session, reservation_id: int):
-    return db.query(models.Reservation).filter(models.Reservation.id == reservation_id).first()
+async def get_reservations_by_user(db: AsyncSession, user_id: int):
+    result = await db.execute(select(Reservation).where(Reservation.user_id == user_id))
+    return result.scalars().all()
